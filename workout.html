@@ -285,6 +285,95 @@
       color: #444;
       font-size: 0.75rem;
     }
+
+    /* ── INFO BUTTON ── */
+    .exercise-card { position: relative; }
+    .info-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+      padding: 0;
+    }
+    .info-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      max-width: 420px;
+      width: 90%;
+      background: #1a1a1a;
+      border-radius: 14px;
+      padding: 24px;
+      position: relative;
+      border: 1.5px solid #2a2a2a;
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--accent); }
+    #modal-gif {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      min-height: 220px;
+      background: #111;
+      object-fit: cover;
+      display: block;
+    }
+    .modal-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .modal-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .modal-yt-link {
+      display: inline-block;
+      background: #c4302b;
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+      transition: background 0.15s;
+    }
+    .modal-yt-link:hover { background: #a52520; }
   </style>
 </head>
 <body>
@@ -333,6 +422,16 @@
   <footer>Workout Generator &mdash; Offline &amp; Open Source</footer>
 </main>
 
+<div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    <img id="modal-gif" src="" alt="" />
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-tags" id="modal-tags"></div>
+    <a id="modal-yt-link" class="modal-yt-link" target="_blank" rel="noopener" style="display:none">▶ Watch on YouTube</a>
+  </div>
+</div>
+
 <script>
 // ─────────────────────────────────────────────
 // EXERCISE DATABASE
@@ -340,151 +439,151 @@
 // ─────────────────────────────────────────────
 const EXERCISES = [
   // CHEST (15)
-  { name: "Barbell Bench Press",         muscle: "Chest",      equipment: "Barbell" },
-  { name: "Incline Dumbbell Press",      muscle: "Chest",      equipment: "Dumbbells" },
-  { name: "Decline Barbell Press",       muscle: "Chest",      equipment: "Barbell" },
-  { name: "Dumbbell Fly",                muscle: "Chest",      equipment: "Dumbbells" },
-  { name: "Cable Crossover",             muscle: "Chest",      equipment: "Cable" },
-  { name: "Pec Deck Machine",            muscle: "Chest",      equipment: "Machine" },
-  { name: "Push-Up",                     muscle: "Chest",      equipment: "Bodyweight" },
-  { name: "Wide-Grip Push-Up",           muscle: "Chest",      equipment: "Bodyweight" },
-  { name: "Incline Push-Up",             muscle: "Chest",      equipment: "Bodyweight" },
-  { name: "Chest Dip",                   muscle: "Chest",      equipment: "Bodyweight" },
-  { name: "Landmine Press",              muscle: "Chest",      equipment: "Barbell" },
-  { name: "Svend Press",                 muscle: "Chest",      equipment: "Plates" },
-  { name: "Low Cable Fly",               muscle: "Chest",      equipment: "Cable" },
-  { name: "Smith Machine Bench Press",   muscle: "Chest",      equipment: "Machine" },
-  { name: "Squeeze Press",               muscle: "Chest",      equipment: "Dumbbells" },
+  { name: "Barbell Bench Press",         muscle: "Chest",      equipment: "Barbell",         gif: null },
+  { name: "Incline Dumbbell Press",      muscle: "Chest",      equipment: "Dumbbells",        gif: null },
+  { name: "Decline Barbell Press",       muscle: "Chest",      equipment: "Barbell",         gif: null },
+  { name: "Dumbbell Fly",                muscle: "Chest",      equipment: "Dumbbells",        gif: null },
+  { name: "Cable Crossover",             muscle: "Chest",      equipment: "Cable",           gif: null },
+  { name: "Pec Deck Machine",            muscle: "Chest",      equipment: "Machine",         gif: null },
+  { name: "Push-Up",                     muscle: "Chest",      equipment: "Bodyweight",      gif: null },
+  { name: "Wide-Grip Push-Up",           muscle: "Chest",      equipment: "Bodyweight",      gif: null },
+  { name: "Incline Push-Up",             muscle: "Chest",      equipment: "Bodyweight",      gif: null },
+  { name: "Chest Dip",                   muscle: "Chest",      equipment: "Bodyweight",      gif: null },
+  { name: "Landmine Press",              muscle: "Chest",      equipment: "Barbell",         gif: null },
+  { name: "Svend Press",                 muscle: "Chest",      equipment: "Plates",          gif: null },
+  { name: "Low Cable Fly",               muscle: "Chest",      equipment: "Cable",           gif: null },
+  { name: "Smith Machine Bench Press",   muscle: "Chest",      equipment: "Machine",         gif: null },
+  { name: "Squeeze Press",               muscle: "Chest",      equipment: "Dumbbells",        gif: null },
 
   // BACK (15)
-  { name: "Deadlift",                    muscle: "Back",       equipment: "Barbell" },
-  { name: "Barbell Row",                 muscle: "Back",       equipment: "Barbell" },
-  { name: "Pull-Up",                     muscle: "Back",       equipment: "Bodyweight" },
-  { name: "Chin-Up",                     muscle: "Back",       equipment: "Bodyweight" },
-  { name: "Lat Pulldown",                muscle: "Back",       equipment: "Cable" },
-  { name: "Seated Cable Row",            muscle: "Back",       equipment: "Cable" },
-  { name: "Single-Arm Dumbbell Row",     muscle: "Back",       equipment: "Dumbbells" },
-  { name: "T-Bar Row",                   muscle: "Back",       equipment: "Barbell" },
-  { name: "Straight-Arm Pulldown",       muscle: "Back",       equipment: "Cable" },
-  { name: "Face Pull",                   muscle: "Back",       equipment: "Cable" },
-  { name: "Rack Pull",                   muscle: "Back",       equipment: "Barbell" },
-  { name: "Meadows Row",                 muscle: "Back",       equipment: "Barbell" },
-  { name: "Chest-Supported Row",         muscle: "Back",       equipment: "Dumbbells" },
-  { name: "Wide-Grip Pulldown",          muscle: "Back",       equipment: "Cable" },
-  { name: "Inverted Row",                muscle: "Back",       equipment: "Bodyweight" },
+  { name: "Deadlift",                    muscle: "Back",       equipment: "Barbell",         gif: null },
+  { name: "Barbell Row",                 muscle: "Back",       equipment: "Barbell",         gif: null },
+  { name: "Pull-Up",                     muscle: "Back",       equipment: "Bodyweight",      gif: null },
+  { name: "Chin-Up",                     muscle: "Back",       equipment: "Bodyweight",      gif: null },
+  { name: "Lat Pulldown",                muscle: "Back",       equipment: "Cable",           gif: null },
+  { name: "Seated Cable Row",            muscle: "Back",       equipment: "Cable",           gif: null },
+  { name: "Single-Arm Dumbbell Row",     muscle: "Back",       equipment: "Dumbbells",        gif: null },
+  { name: "T-Bar Row",                   muscle: "Back",       equipment: "Barbell",         gif: null },
+  { name: "Straight-Arm Pulldown",       muscle: "Back",       equipment: "Cable",           gif: null },
+  { name: "Face Pull",                   muscle: "Back",       equipment: "Cable",           gif: null },
+  { name: "Rack Pull",                   muscle: "Back",       equipment: "Barbell",         gif: null },
+  { name: "Meadows Row",                 muscle: "Back",       equipment: "Barbell",         gif: null },
+  { name: "Chest-Supported Row",         muscle: "Back",       equipment: "Dumbbells",        gif: null },
+  { name: "Wide-Grip Pulldown",          muscle: "Back",       equipment: "Cable",           gif: null },
+  { name: "Inverted Row",                muscle: "Back",       equipment: "Bodyweight",      gif: null },
 
   // SHOULDERS (13)
-  { name: "Overhead Barbell Press",      muscle: "Shoulders",  equipment: "Barbell" },
-  { name: "Dumbbell Shoulder Press",     muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Arnold Press",                muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Lateral Raise",               muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Front Raise",                 muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Rear Delt Fly",               muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Cable Lateral Raise",         muscle: "Shoulders",  equipment: "Cable" },
-  { name: "Upright Row",                 muscle: "Shoulders",  equipment: "Barbell" },
-  { name: "Machine Shoulder Press",      muscle: "Shoulders",  equipment: "Machine" },
-  { name: "Seated Dumbbell Press",       muscle: "Shoulders",  equipment: "Dumbbells" },
-  { name: "Push Press",                  muscle: "Shoulders",  equipment: "Barbell" },
-  { name: "Landmine Lateral Raise",      muscle: "Shoulders",  equipment: "Barbell" },
-  { name: "Cable Face Pull",             muscle: "Shoulders",  equipment: "Cable" },
+  { name: "Overhead Barbell Press",      muscle: "Shoulders",  equipment: "Barbell",         gif: null },
+  { name: "Dumbbell Shoulder Press",     muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Arnold Press",                muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Lateral Raise",               muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Front Raise",                 muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Rear Delt Fly",               muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Cable Lateral Raise",         muscle: "Shoulders",  equipment: "Cable",           gif: null },
+  { name: "Upright Row",                 muscle: "Shoulders",  equipment: "Barbell",         gif: null },
+  { name: "Machine Shoulder Press",      muscle: "Shoulders",  equipment: "Machine",         gif: null },
+  { name: "Seated Dumbbell Press",       muscle: "Shoulders",  equipment: "Dumbbells",        gif: null },
+  { name: "Push Press",                  muscle: "Shoulders",  equipment: "Barbell",         gif: null },
+  { name: "Landmine Lateral Raise",      muscle: "Shoulders",  equipment: "Barbell",         gif: null },
+  { name: "Cable Face Pull",             muscle: "Shoulders",  equipment: "Cable",           gif: null },
 
   // BICEPS (12)
-  { name: "Barbell Curl",                muscle: "Biceps",     equipment: "Barbell" },
-  { name: "Dumbbell Curl",               muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "Hammer Curl",                 muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "Incline Dumbbell Curl",       muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "Preacher Curl",               muscle: "Biceps",     equipment: "Barbell" },
-  { name: "Cable Curl",                  muscle: "Biceps",     equipment: "Cable" },
-  { name: "Concentration Curl",          muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "Rope Hammer Curl",            muscle: "Biceps",     equipment: "Cable" },
-  { name: "Zottman Curl",                muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "EZ-Bar Curl",                 muscle: "Biceps",     equipment: "Barbell" },
-  { name: "Cross-Body Curl",             muscle: "Biceps",     equipment: "Dumbbells" },
-  { name: "Spider Curl",                 muscle: "Biceps",     equipment: "Barbell" },
+  { name: "Barbell Curl",                muscle: "Biceps",     equipment: "Barbell",         gif: null },
+  { name: "Dumbbell Curl",               muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "Hammer Curl",                 muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "Incline Dumbbell Curl",       muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "Preacher Curl",               muscle: "Biceps",     equipment: "Barbell",         gif: null },
+  { name: "Cable Curl",                  muscle: "Biceps",     equipment: "Cable",           gif: null },
+  { name: "Concentration Curl",          muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "Rope Hammer Curl",            muscle: "Biceps",     equipment: "Cable",           gif: null },
+  { name: "Zottman Curl",                muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "EZ-Bar Curl",                 muscle: "Biceps",     equipment: "Barbell",         gif: null },
+  { name: "Cross-Body Curl",             muscle: "Biceps",     equipment: "Dumbbells",        gif: null },
+  { name: "Spider Curl",                 muscle: "Biceps",     equipment: "Barbell",         gif: null },
 
   // TRICEPS (12)
-  { name: "Tricep Pushdown",             muscle: "Triceps",    equipment: "Cable" },
-  { name: "Skull Crusher",               muscle: "Triceps",    equipment: "Barbell" },
-  { name: "Overhead Tricep Extension",   muscle: "Triceps",    equipment: "Dumbbells" },
-  { name: "Close-Grip Bench Press",      muscle: "Triceps",    equipment: "Barbell" },
-  { name: "Tricep Dip",                  muscle: "Triceps",    equipment: "Bodyweight" },
-  { name: "Diamond Push-Up",             muscle: "Triceps",    equipment: "Bodyweight" },
-  { name: "Rope Pushdown",               muscle: "Triceps",    equipment: "Cable" },
-  { name: "Overhead Rope Extension",     muscle: "Triceps",    equipment: "Cable" },
-  { name: "Kickback",                    muscle: "Triceps",    equipment: "Dumbbells" },
-  { name: "JM Press",                    muscle: "Triceps",    equipment: "Barbell" },
-  { name: "Tate Press",                  muscle: "Triceps",    equipment: "Dumbbells" },
-  { name: "Single-Arm Pushdown",         muscle: "Triceps",    equipment: "Cable" },
+  { name: "Tricep Pushdown",             muscle: "Triceps",    equipment: "Cable",           gif: null },
+  { name: "Skull Crusher",               muscle: "Triceps",    equipment: "Barbell",         gif: null },
+  { name: "Overhead Tricep Extension",   muscle: "Triceps",    equipment: "Dumbbells",        gif: null },
+  { name: "Close-Grip Bench Press",      muscle: "Triceps",    equipment: "Barbell",         gif: null },
+  { name: "Tricep Dip",                  muscle: "Triceps",    equipment: "Bodyweight",      gif: null },
+  { name: "Diamond Push-Up",             muscle: "Triceps",    equipment: "Bodyweight",      gif: null },
+  { name: "Rope Pushdown",               muscle: "Triceps",    equipment: "Cable",           gif: null },
+  { name: "Overhead Rope Extension",     muscle: "Triceps",    equipment: "Cable",           gif: null },
+  { name: "Kickback",                    muscle: "Triceps",    equipment: "Dumbbells",        gif: null },
+  { name: "JM Press",                    muscle: "Triceps",    equipment: "Barbell",         gif: null },
+  { name: "Tate Press",                  muscle: "Triceps",    equipment: "Dumbbells",        gif: null },
+  { name: "Single-Arm Pushdown",         muscle: "Triceps",    equipment: "Cable",           gif: null },
 
   // QUADS (13)
-  { name: "Barbell Back Squat",          muscle: "Quads",      equipment: "Barbell" },
-  { name: "Front Squat",                 muscle: "Quads",      equipment: "Barbell" },
-  { name: "Leg Press",                   muscle: "Quads",      equipment: "Machine" },
-  { name: "Hack Squat",                  muscle: "Quads",      equipment: "Machine" },
-  { name: "Leg Extension",               muscle: "Quads",      equipment: "Machine" },
-  { name: "Bulgarian Split Squat",       muscle: "Quads",      equipment: "Dumbbells" },
-  { name: "Goblet Squat",                muscle: "Quads",      equipment: "Dumbbells" },
-  { name: "Lunges",                      muscle: "Quads",      equipment: "Bodyweight" },
-  { name: "Walking Lunges",              muscle: "Quads",      equipment: "Dumbbells" },
-  { name: "Step-Up",                     muscle: "Quads",      equipment: "Dumbbells" },
-  { name: "Sissy Squat",                 muscle: "Quads",      equipment: "Bodyweight" },
-  { name: "Box Squat",                   muscle: "Quads",      equipment: "Barbell" },
-  { name: "Landmine Squat",              muscle: "Quads",      equipment: "Barbell" },
+  { name: "Barbell Back Squat",          muscle: "Quads",      equipment: "Barbell",         gif: null },
+  { name: "Front Squat",                 muscle: "Quads",      equipment: "Barbell",         gif: null },
+  { name: "Leg Press",                   muscle: "Quads",      equipment: "Machine",         gif: null },
+  { name: "Hack Squat",                  muscle: "Quads",      equipment: "Machine",         gif: null },
+  { name: "Leg Extension",               muscle: "Quads",      equipment: "Machine",         gif: null },
+  { name: "Bulgarian Split Squat",       muscle: "Quads",      equipment: "Dumbbells",        gif: null },
+  { name: "Goblet Squat",                muscle: "Quads",      equipment: "Dumbbells",        gif: null },
+  { name: "Lunges",                      muscle: "Quads",      equipment: "Bodyweight",      gif: null },
+  { name: "Walking Lunges",              muscle: "Quads",      equipment: "Dumbbells",        gif: null },
+  { name: "Step-Up",                     muscle: "Quads",      equipment: "Dumbbells",        gif: null },
+  { name: "Sissy Squat",                 muscle: "Quads",      equipment: "Bodyweight",      gif: null },
+  { name: "Box Squat",                   muscle: "Quads",      equipment: "Barbell",         gif: null },
+  { name: "Landmine Squat",              muscle: "Quads",      equipment: "Barbell",         gif: null },
 
   // HAMSTRINGS (12)
-  { name: "Romanian Deadlift",           muscle: "Hamstrings", equipment: "Barbell" },
-  { name: "Leg Curl (Lying)",            muscle: "Hamstrings", equipment: "Machine" },
-  { name: "Leg Curl (Seated)",           muscle: "Hamstrings", equipment: "Machine" },
-  { name: "Stiff-Leg Deadlift",          muscle: "Hamstrings", equipment: "Barbell" },
-  { name: "Nordic Hamstring Curl",       muscle: "Hamstrings", equipment: "Bodyweight" },
-  { name: "Good Morning",                muscle: "Hamstrings", equipment: "Barbell" },
-  { name: "Single-Leg RDL",              muscle: "Hamstrings", equipment: "Dumbbells" },
-  { name: "Glute-Ham Raise",             muscle: "Hamstrings", equipment: "Machine" },
-  { name: "Cable Pull-Through",          muscle: "Hamstrings", equipment: "Cable" },
-  { name: "Dumbbell Leg Curl",           muscle: "Hamstrings", equipment: "Dumbbells" },
-  { name: "Swiss Ball Leg Curl",         muscle: "Hamstrings", equipment: "Bodyweight" },
-  { name: "Sumo Deadlift",               muscle: "Hamstrings", equipment: "Barbell" },
+  { name: "Romanian Deadlift",           muscle: "Hamstrings", equipment: "Barbell",         gif: null },
+  { name: "Leg Curl (Lying)",            muscle: "Hamstrings", equipment: "Machine",         gif: null },
+  { name: "Leg Curl (Seated)",           muscle: "Hamstrings", equipment: "Machine",         gif: null },
+  { name: "Stiff-Leg Deadlift",          muscle: "Hamstrings", equipment: "Barbell",         gif: null },
+  { name: "Nordic Hamstring Curl",       muscle: "Hamstrings", equipment: "Bodyweight",      gif: null },
+  { name: "Good Morning",                muscle: "Hamstrings", equipment: "Barbell",         gif: null },
+  { name: "Single-Leg RDL",              muscle: "Hamstrings", equipment: "Dumbbells",        gif: null },
+  { name: "Glute-Ham Raise",             muscle: "Hamstrings", equipment: "Machine",         gif: null },
+  { name: "Cable Pull-Through",          muscle: "Hamstrings", equipment: "Cable",           gif: null },
+  { name: "Dumbbell Leg Curl",           muscle: "Hamstrings", equipment: "Dumbbells",        gif: null },
+  { name: "Swiss Ball Leg Curl",         muscle: "Hamstrings", equipment: "Bodyweight",      gif: null },
+  { name: "Sumo Deadlift",               muscle: "Hamstrings", equipment: "Barbell",         gif: null },
 
   // GLUTES (12)
-  { name: "Hip Thrust",                  muscle: "Glutes",     equipment: "Barbell" },
-  { name: "Glute Bridge",                muscle: "Glutes",     equipment: "Bodyweight" },
-  { name: "Cable Kickback",              muscle: "Glutes",     equipment: "Cable" },
-  { name: "Donkey Kick",                 muscle: "Glutes",     equipment: "Bodyweight" },
-  { name: "Sumo Squat",                  muscle: "Glutes",     equipment: "Dumbbells" },
-  { name: "Single-Leg Hip Thrust",       muscle: "Glutes",     equipment: "Bodyweight" },
-  { name: "Banded Clamshell",            muscle: "Glutes",     equipment: "Resistance Band" },
-  { name: "Side-Lying Abduction",        muscle: "Glutes",     equipment: "Bodyweight" },
-  { name: "Romanian Deadlift (Wide)",    muscle: "Glutes",     equipment: "Barbell" },
-  { name: "Smith Machine Hip Thrust",    muscle: "Glutes",     equipment: "Machine" },
-  { name: "Frog Pump",                   muscle: "Glutes",     equipment: "Bodyweight" },
-  { name: "Step-Back Lunge",             muscle: "Glutes",     equipment: "Dumbbells" },
+  { name: "Hip Thrust",                  muscle: "Glutes",     equipment: "Barbell",         gif: null },
+  { name: "Glute Bridge",                muscle: "Glutes",     equipment: "Bodyweight",      gif: null },
+  { name: "Cable Kickback",              muscle: "Glutes",     equipment: "Cable",           gif: null },
+  { name: "Donkey Kick",                 muscle: "Glutes",     equipment: "Bodyweight",      gif: null },
+  { name: "Sumo Squat",                  muscle: "Glutes",     equipment: "Dumbbells",        gif: null },
+  { name: "Single-Leg Hip Thrust",       muscle: "Glutes",     equipment: "Bodyweight",      gif: null },
+  { name: "Banded Clamshell",            muscle: "Glutes",     equipment: "Resistance Band", gif: null },
+  { name: "Side-Lying Abduction",        muscle: "Glutes",     equipment: "Bodyweight",      gif: null },
+  { name: "Romanian Deadlift (Wide)",    muscle: "Glutes",     equipment: "Barbell",         gif: null },
+  { name: "Smith Machine Hip Thrust",    muscle: "Glutes",     equipment: "Machine",         gif: null },
+  { name: "Frog Pump",                   muscle: "Glutes",     equipment: "Bodyweight",      gif: null },
+  { name: "Step-Back Lunge",             muscle: "Glutes",     equipment: "Dumbbells",        gif: null },
 
   // CALVES (10)
-  { name: "Standing Calf Raise",         muscle: "Calves",     equipment: "Machine" },
-  { name: "Seated Calf Raise",           muscle: "Calves",     equipment: "Machine" },
-  { name: "Donkey Calf Raise",           muscle: "Calves",     equipment: "Bodyweight" },
-  { name: "Single-Leg Calf Raise",       muscle: "Calves",     equipment: "Bodyweight" },
-  { name: "Leg Press Calf Raise",        muscle: "Calves",     equipment: "Machine" },
-  { name: "Dumbbell Calf Raise",         muscle: "Calves",     equipment: "Dumbbells" },
-  { name: "Jump Rope",                   muscle: "Calves",     equipment: "Bodyweight" },
-  { name: "Box Jump (landing focus)",    muscle: "Calves",     equipment: "Bodyweight" },
-  { name: "Smith Machine Calf Raise",    muscle: "Calves",     equipment: "Machine" },
-  { name: "Tibialis Raise",              muscle: "Calves",     equipment: "Bodyweight" },
+  { name: "Standing Calf Raise",         muscle: "Calves",     equipment: "Machine",         gif: null },
+  { name: "Seated Calf Raise",           muscle: "Calves",     equipment: "Machine",         gif: null },
+  { name: "Donkey Calf Raise",           muscle: "Calves",     equipment: "Bodyweight",      gif: null },
+  { name: "Single-Leg Calf Raise",       muscle: "Calves",     equipment: "Bodyweight",      gif: null },
+  { name: "Leg Press Calf Raise",        muscle: "Calves",     equipment: "Machine",         gif: null },
+  { name: "Dumbbell Calf Raise",         muscle: "Calves",     equipment: "Dumbbells",        gif: null },
+  { name: "Jump Rope",                   muscle: "Calves",     equipment: "Bodyweight",      gif: null },
+  { name: "Box Jump (landing focus)",    muscle: "Calves",     equipment: "Bodyweight",      gif: null },
+  { name: "Smith Machine Calf Raise",    muscle: "Calves",     equipment: "Machine",         gif: null },
+  { name: "Tibialis Raise",              muscle: "Calves",     equipment: "Bodyweight",      gif: null },
 
   // CORE (13)
-  { name: "Plank",                       muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Cable Crunch",                muscle: "Core",       equipment: "Cable" },
-  { name: "Ab Wheel Rollout",            muscle: "Core",       equipment: "Ab Wheel" },
-  { name: "Hanging Leg Raise",           muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Russian Twist",               muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Decline Sit-Up",             muscle: "Core",       equipment: "Machine" },
-  { name: "Dragon Flag",                 muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Pallof Press",                muscle: "Core",       equipment: "Cable" },
-  { name: "Dead Bug",                    muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Hollow Body Hold",            muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Bicycle Crunch",              muscle: "Core",       equipment: "Bodyweight" },
-  { name: "Landmine Rotation",           muscle: "Core",       equipment: "Barbell" },
-  { name: "Side Plank",                  muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Plank",                       muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Cable Crunch",                muscle: "Core",       equipment: "Cable",           gif: null },
+  { name: "Ab Wheel Rollout",            muscle: "Core",       equipment: "Ab Wheel",        gif: null },
+  { name: "Hanging Leg Raise",           muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Russian Twist",               muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Decline Sit-Up",             muscle: "Core",       equipment: "Machine",         gif: null },
+  { name: "Dragon Flag",                 muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Pallof Press",                muscle: "Core",       equipment: "Cable",           gif: null },
+  { name: "Dead Bug",                    muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Hollow Body Hold",            muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Bicycle Crunch",              muscle: "Core",       equipment: "Bodyweight",      gif: null },
+  { name: "Landmine Rotation",           muscle: "Core",       equipment: "Barbell",         gif: null },
+  { name: "Side Plank",                  muscle: "Core",       equipment: "Bodyweight",      gif: null },
 ];
 
 // ─────────────────────────────────────────────
@@ -629,7 +728,9 @@ function renderWorkout(exercises, muscles) {
           <span class="tag tag-muscle">${ex.muscle}</span>
           <span class="tag tag-equipment">${ex.equipment}</span>
         </div>
-      </div>`;
+      </div>
+      <button class="info-btn" aria-label="Show demo">ⓘ</button>`;
+    card.querySelector(".info-btn").addEventListener("click", () => openModal(ex));
     list.appendChild(card);
   });
 
@@ -694,6 +795,57 @@ function handleRegen() {
 
 document.getElementById("generate-btn").addEventListener("click", handleGenerate);
 document.getElementById("regen-btn").addEventListener("click", handleRegen);
+
+// ─────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────
+function openModal(ex) {
+  const overlay = document.getElementById("modal-overlay");
+  const gifEl   = document.getElementById("modal-gif");
+  const nameEl  = document.getElementById("modal-name");
+  const tagsEl  = document.getElementById("modal-tags");
+  const ytLink  = document.getElementById("modal-yt-link");
+
+  nameEl.textContent = ex.name;
+  tagsEl.innerHTML = `
+    <span class="tag tag-muscle">${ex.muscle}</span>
+    <span class="tag tag-equipment">${ex.equipment}</span>`;
+
+  const query = encodeURIComponent(ex.name + " exercise");
+  ytLink.href = "https://www.youtube.com/results?search_query=" + query;
+
+  if (ex.gif) {
+    gifEl.style.display = "block";
+    gifEl.src = ex.gif;
+    gifEl.alt = ex.name;
+    ytLink.style.display = "none";
+    gifEl.onerror = () => {
+      gifEl.style.display = "none";
+      ytLink.style.display = "inline-block";
+    };
+  } else {
+    gifEl.style.display = "none";
+    gifEl.src = "";
+    ytLink.style.display = "inline-block";
+  }
+
+  overlay.classList.add("open");
+  document.getElementById("modal-close").focus();
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+document.getElementById("modal-close").addEventListener("click", closeModal);
+
+document.getElementById("modal-overlay").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("modal-overlay")) closeModal();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
 
 // ─────────────────────────────────────────────
 // INIT
