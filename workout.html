@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workout Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --surface2: #222222;
+      --border: #2a2a2a;
+      --accent: #e63946;
+      --accent-dark: #c1121f;
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --selected-border: #e63946;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 28px 24px 22px;
+      text-align: center;
+    }
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
+      letter-spacing: 3px;
+      color: var(--text);
+      line-height: 1;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin-top: 6px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── MAIN CONTAINER ── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 0;
+    }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    /* ── MUSCLE GROUP GRID ── */
+    .muscle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .muscle-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.18s, background 0.18s, transform 0.12s;
+    }
+    .muscle-card:hover { border-color: #555; transform: translateY(-1px); }
+    .muscle-card.selected {
+      border-color: var(--selected-border);
+      background: #2a1215;
+    }
+    .muscle-card .icon { font-size: 1.6rem; margin-bottom: 6px; }
+    .muscle-card .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: var(--text);
+    }
+    .muscle-card.selected .label { color: #fff; }
+
+    /* ── CONTROLS ROW ── */
+    .controls-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    .control-group label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .number-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .num-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      width: 38px;
+      height: 42px;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .num-btn:hover { color: var(--text); background: var(--surface2); }
+    #exercise-count {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      width: 44px;
+      text-align: center;
+      outline: none;
+    }
+    #exercise-count::-webkit-inner-spin-button,
+    #exercise-count::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .btn {
+      height: 42px;
+      padding: 0 28px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: #555; background: #2a2a2a; }
+
+    /* ── ERROR / NOTICE ── */
+    .notice {
+      background: #2a1215;
+      border: 1px solid #6b1d24;
+      border-radius: 8px;
+      color: #f28b8f;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .notice.visible { display: block; }
+
+    /* ── OUTPUT AREA ── */
+    #output { display: none; }
+    #output.visible { display: block; }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .output-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+    }
+    .output-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── EXERCISE CARDS ── */
+    .exercise-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .exercise-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      animation: fadeSlide 0.25s ease both;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .exercise-card:nth-child(1)  { animation-delay: 0.00s; }
+    .exercise-card:nth-child(2)  { animation-delay: 0.03s; }
+    .exercise-card:nth-child(3)  { animation-delay: 0.06s; }
+    .exercise-card:nth-child(4)  { animation-delay: 0.09s; }
+    .exercise-card:nth-child(5)  { animation-delay: 0.12s; }
+    .exercise-card:nth-child(6)  { animation-delay: 0.15s; }
+    .exercise-card:nth-child(7)  { animation-delay: 0.18s; }
+    .exercise-card:nth-child(8)  { animation-delay: 0.21s; }
+    .exercise-card:nth-child(9)  { animation-delay: 0.24s; }
+    .exercise-card:nth-child(10) { animation-delay: 0.27s; }
+
+    .exercise-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      line-height: 1;
+      min-width: 28px;
+      padding-top: 2px;
+    }
+    .exercise-info { flex: 1; }
+    .exercise-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .exercise-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .tag-muscle {
+      background: #2a1215;
+      color: #f28b8f;
+      border: 1px solid #6b1d24;
+    }
+    .tag-equipment {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      color: #444;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>WORKOUT <span>GENERATOR</span></h1>
+  <p>Pick your muscles. Get your workout. No excuses.</p>
+</header>
+
+<main>
+
+  <!-- MUSCLE GROUP SELECTOR -->
+  <div class="section-label">Select Muscle Groups</div>
+  <div class="muscle-grid" id="muscle-grid">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-row">
+    <div class="control-group">
+      <label for="exercise-count">Exercises</label>
+      <div class="number-input-wrap">
+        <button class="num-btn" id="decrement" aria-label="Decrease">&#8722;</button>
+        <input type="number" id="exercise-count" value="6" min="1" max="30" readonly />
+        <button class="num-btn" id="increment" aria-label="Increase">&#43;</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="generate-btn">Generate Workout</button>
+    <button class="btn btn-secondary" id="regen-btn" style="display:none">Regenerate</button>
+  </div>
+
+  <!-- NOTICE -->
+  <div class="notice" id="notice"></div>
+
+  <!-- OUTPUT -->
+  <div id="output">
+    <div class="output-header">
+      <div>
+        <div class="output-title" id="output-title">YOUR WORKOUT</div>
+        <div class="output-meta" id="output-meta"></div>
+      </div>
+    </div>
+    <div class="exercise-list" id="exercise-list"></div>
+  </div>
+
+  <footer>Workout Generator &mdash; Offline &amp; Open Source</footer>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+// EXERCISE DATABASE
+// Each entry: { name, muscle, equipment }
+// ─────────────────────────────────────────────
+const EXERCISES = [
+  // CHEST (15)
+  { name: "Barbell Bench Press",         muscle: "Chest",      equipment: "Barbell" },
+  { name: "Incline Dumbbell Press",      muscle: "Chest",      equipment: "Dumbbells" },
+  { name: "Decline Barbell Press",       muscle: "Chest",      equipment: "Barbell" },
+  { name: "Dumbbell Fly",                muscle: "Chest",      equipment: "Dumbbells" },
+  { name: "Cable Crossover",             muscle: "Chest",      equipment: "Cable" },
+  { name: "Pec Deck Machine",            muscle: "Chest",      equipment: "Machine" },
+  { name: "Push-Up",                     muscle: "Chest",      equipment: "Bodyweight" },
+  { name: "Wide-Grip Push-Up",           muscle: "Chest",      equipment: "Bodyweight" },
+  { name: "Incline Push-Up",             muscle: "Chest",      equipment: "Bodyweight" },
+  { name: "Chest Dip",                   muscle: "Chest",      equipment: "Bodyweight" },
+  { name: "Landmine Press",              muscle: "Chest",      equipment: "Barbell" },
+  { name: "Svend Press",                 muscle: "Chest",      equipment: "Plates" },
+  { name: "Low Cable Fly",               muscle: "Chest",      equipment: "Cable" },
+  { name: "Smith Machine Bench Press",   muscle: "Chest",      equipment: "Machine" },
+  { name: "Squeeze Press",               muscle: "Chest",      equipment: "Dumbbells" },
+
+  // BACK (15)
+  { name: "Deadlift",                    muscle: "Back",       equipment: "Barbell" },
+  { name: "Barbell Row",                 muscle: "Back",       equipment: "Barbell" },
+  { name: "Pull-Up",                     muscle: "Back",       equipment: "Bodyweight" },
+  { name: "Chin-Up",                     muscle: "Back",       equipment: "Bodyweight" },
+  { name: "Lat Pulldown",                muscle: "Back",       equipment: "Cable" },
+  { name: "Seated Cable Row",            muscle: "Back",       equipment: "Cable" },
+  { name: "Single-Arm Dumbbell Row",     muscle: "Back",       equipment: "Dumbbells" },
+  { name: "T-Bar Row",                   muscle: "Back",       equipment: "Barbell" },
+  { name: "Straight-Arm Pulldown",       muscle: "Back",       equipment: "Cable" },
+  { name: "Face Pull",                   muscle: "Back",       equipment: "Cable" },
+  { name: "Rack Pull",                   muscle: "Back",       equipment: "Barbell" },
+  { name: "Meadows Row",                 muscle: "Back",       equipment: "Barbell" },
+  { name: "Chest-Supported Row",         muscle: "Back",       equipment: "Dumbbells" },
+  { name: "Wide-Grip Pulldown",          muscle: "Back",       equipment: "Cable" },
+  { name: "Inverted Row",                muscle: "Back",       equipment: "Bodyweight" },
+
+  // SHOULDERS (13)
+  { name: "Overhead Barbell Press",      muscle: "Shoulders",  equipment: "Barbell" },
+  { name: "Dumbbell Shoulder Press",     muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Arnold Press",                muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Lateral Raise",               muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Front Raise",                 muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Rear Delt Fly",               muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Cable Lateral Raise",         muscle: "Shoulders",  equipment: "Cable" },
+  { name: "Upright Row",                 muscle: "Shoulders",  equipment: "Barbell" },
+  { name: "Machine Shoulder Press",      muscle: "Shoulders",  equipment: "Machine" },
+  { name: "Seated Dumbbell Press",       muscle: "Shoulders",  equipment: "Dumbbells" },
+  { name: "Push Press",                  muscle: "Shoulders",  equipment: "Barbell" },
+  { name: "Landmine Lateral Raise",      muscle: "Shoulders",  equipment: "Barbell" },
+  { name: "Cable Face Pull",             muscle: "Shoulders",  equipment: "Cable" },
+
+  // BICEPS (12)
+  { name: "Barbell Curl",                muscle: "Biceps",     equipment: "Barbell" },
+  { name: "Dumbbell Curl",               muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "Hammer Curl",                 muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "Incline Dumbbell Curl",       muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "Preacher Curl",               muscle: "Biceps",     equipment: "Barbell" },
+  { name: "Cable Curl",                  muscle: "Biceps",     equipment: "Cable" },
+  { name: "Concentration Curl",          muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "Rope Hammer Curl",            muscle: "Biceps",     equipment: "Cable" },
+  { name: "Zottman Curl",                muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "EZ-Bar Curl",                 muscle: "Biceps",     equipment: "Barbell" },
+  { name: "Cross-Body Curl",             muscle: "Biceps",     equipment: "Dumbbells" },
+  { name: "Spider Curl",                 muscle: "Biceps",     equipment: "Barbell" },
+
+  // TRICEPS (12)
+  { name: "Tricep Pushdown",             muscle: "Triceps",    equipment: "Cable" },
+  { name: "Skull Crusher",               muscle: "Triceps",    equipment: "Barbell" },
+  { name: "Overhead Tricep Extension",   muscle: "Triceps",    equipment: "Dumbbells" },
+  { name: "Close-Grip Bench Press",      muscle: "Triceps",    equipment: "Barbell" },
+  { name: "Tricep Dip",                  muscle: "Triceps",    equipment: "Bodyweight" },
+  { name: "Diamond Push-Up",             muscle: "Triceps",    equipment: "Bodyweight" },
+  { name: "Rope Pushdown",               muscle: "Triceps",    equipment: "Cable" },
+  { name: "Overhead Rope Extension",     muscle: "Triceps",    equipment: "Cable" },
+  { name: "Kickback",                    muscle: "Triceps",    equipment: "Dumbbells" },
+  { name: "JM Press",                    muscle: "Triceps",    equipment: "Barbell" },
+  { name: "Tate Press",                  muscle: "Triceps",    equipment: "Dumbbells" },
+  { name: "Single-Arm Pushdown",         muscle: "Triceps",    equipment: "Cable" },
+
+  // QUADS (13)
+  { name: "Barbell Back Squat",          muscle: "Quads",      equipment: "Barbell" },
+  { name: "Front Squat",                 muscle: "Quads",      equipment: "Barbell" },
+  { name: "Leg Press",                   muscle: "Quads",      equipment: "Machine" },
+  { name: "Hack Squat",                  muscle: "Quads",      equipment: "Machine" },
+  { name: "Leg Extension",               muscle: "Quads",      equipment: "Machine" },
+  { name: "Bulgarian Split Squat",       muscle: "Quads",      equipment: "Dumbbells" },
+  { name: "Goblet Squat",                muscle: "Quads",      equipment: "Dumbbells" },
+  { name: "Lunges",                      muscle: "Quads",      equipment: "Bodyweight" },
+  { name: "Walking Lunges",              muscle: "Quads",      equipment: "Dumbbells" },
+  { name: "Step-Up",                     muscle: "Quads",      equipment: "Dumbbells" },
+  { name: "Sissy Squat",                 muscle: "Quads",      equipment: "Bodyweight" },
+  { name: "Box Squat",                   muscle: "Quads",      equipment: "Barbell" },
+  { name: "Landmine Squat",              muscle: "Quads",      equipment: "Barbell" },
+
+  // HAMSTRINGS (12)
+  { name: "Romanian Deadlift",           muscle: "Hamstrings", equipment: "Barbell" },
+  { name: "Leg Curl (Lying)",            muscle: "Hamstrings", equipment: "Machine" },
+  { name: "Leg Curl (Seated)",           muscle: "Hamstrings", equipment: "Machine" },
+  { name: "Stiff-Leg Deadlift",          muscle: "Hamstrings", equipment: "Barbell" },
+  { name: "Nordic Hamstring Curl",       muscle: "Hamstrings", equipment: "Bodyweight" },
+  { name: "Good Morning",                muscle: "Hamstrings", equipment: "Barbell" },
+  { name: "Single-Leg RDL",              muscle: "Hamstrings", equipment: "Dumbbells" },
+  { name: "Glute-Ham Raise",             muscle: "Hamstrings", equipment: "Machine" },
+  { name: "Cable Pull-Through",          muscle: "Hamstrings", equipment: "Cable" },
+  { name: "Dumbbell Leg Curl",           muscle: "Hamstrings", equipment: "Dumbbells" },
+  { name: "Swiss Ball Leg Curl",         muscle: "Hamstrings", equipment: "Bodyweight" },
+  { name: "Sumo Deadlift",               muscle: "Hamstrings", equipment: "Barbell" },
+
+  // GLUTES (12)
+  { name: "Hip Thrust",                  muscle: "Glutes",     equipment: "Barbell" },
+  { name: "Glute Bridge",                muscle: "Glutes",     equipment: "Bodyweight" },
+  { name: "Cable Kickback",              muscle: "Glutes",     equipment: "Cable" },
+  { name: "Donkey Kick",                 muscle: "Glutes",     equipment: "Bodyweight" },
+  { name: "Sumo Squat",                  muscle: "Glutes",     equipment: "Dumbbells" },
+  { name: "Single-Leg Hip Thrust",       muscle: "Glutes",     equipment: "Bodyweight" },
+  { name: "Banded Clamshell",            muscle: "Glutes",     equipment: "Resistance Band" },
+  { name: "Side-Lying Abduction",        muscle: "Glutes",     equipment: "Bodyweight" },
+  { name: "Romanian Deadlift (Wide)",    muscle: "Glutes",     equipment: "Barbell" },
+  { name: "Smith Machine Hip Thrust",    muscle: "Glutes",     equipment: "Machine" },
+  { name: "Frog Pump",                   muscle: "Glutes",     equipment: "Bodyweight" },
+  { name: "Step-Back Lunge",             muscle: "Glutes",     equipment: "Dumbbells" },
+
+  // CALVES (10)
+  { name: "Standing Calf Raise",         muscle: "Calves",     equipment: "Machine" },
+  { name: "Seated Calf Raise",           muscle: "Calves",     equipment: "Machine" },
+  { name: "Donkey Calf Raise",           muscle: "Calves",     equipment: "Bodyweight" },
+  { name: "Single-Leg Calf Raise",       muscle: "Calves",     equipment: "Bodyweight" },
+  { name: "Leg Press Calf Raise",        muscle: "Calves",     equipment: "Machine" },
+  { name: "Dumbbell Calf Raise",         muscle: "Calves",     equipment: "Dumbbells" },
+  { name: "Jump Rope",                   muscle: "Calves",     equipment: "Bodyweight" },
+  { name: "Box Jump (landing focus)",    muscle: "Calves",     equipment: "Bodyweight" },
+  { name: "Smith Machine Calf Raise",    muscle: "Calves",     equipment: "Machine" },
+  { name: "Tibialis Raise",              muscle: "Calves",     equipment: "Bodyweight" },
+
+  // CORE (13)
+  { name: "Plank",                       muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Cable Crunch",                muscle: "Core",       equipment: "Cable" },
+  { name: "Ab Wheel Rollout",            muscle: "Core",       equipment: "Ab Wheel" },
+  { name: "Hanging Leg Raise",           muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Russian Twist",               muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Decline Sit-Up",             muscle: "Core",       equipment: "Machine" },
+  { name: "Dragon Flag",                 muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Pallof Press",                muscle: "Core",       equipment: "Cable" },
+  { name: "Dead Bug",                    muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Hollow Body Hold",            muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Bicycle Crunch",              muscle: "Core",       equipment: "Bodyweight" },
+  { name: "Landmine Rotation",           muscle: "Core",       equipment: "Barbell" },
+  { name: "Side Plank",                  muscle: "Core",       equipment: "Bodyweight" },
+];
+
+// ─────────────────────────────────────────────
+// MUSCLE GROUP CONFIG
+// ─────────────────────────────────────────────
+const MUSCLE_GROUPS = [
+  { key: "Chest",      icon: "💪" },
+  { key: "Back",       icon: "🔙" },
+  { key: "Shoulders",  icon: "🏋️" },
+  { key: "Biceps",     icon: "💪" },
+  { key: "Triceps",    icon: "🦾" },
+  { key: "Quads",      icon: "🦵" },
+  { key: "Hamstrings", icon: "🦵" },
+  { key: "Glutes",     icon: "🍑" },
+  { key: "Calves",     icon: "🦿" },
+  { key: "Core",       icon: "🎯" },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let selected = new Set();
+let lastWorkout = null;
+
+// ─────────────────────────────────────────────
+// BUILD MUSCLE GRID
+// ─────────────────────────────────────────────
+function buildGrid() {
+  const grid = document.getElementById("muscle-grid");
+  MUSCLE_GROUPS.forEach(({ key, icon }) => {
+    const card = document.createElement("div");
+    card.className = "muscle-card";
+    card.dataset.muscle = key;
+    card.innerHTML = `<div class="icon">${icon}</div><div class="label">${key}</div>`;
+    card.addEventListener("click", () => toggleMuscle(key, card));
+    grid.appendChild(card);
+  });
+}
+
+function toggleMuscle(key, card) {
+  if (selected.has(key)) {
+    selected.delete(key);
+    card.classList.remove("selected");
+  } else {
+    selected.add(key);
+    card.classList.add("selected");
+  }
+}
+
+// ─────────────────────────────────────────────
+// EXERCISE COUNT CONTROLS
+// ─────────────────────────────────────────────
+const countInput = document.getElementById("exercise-count");
+
+document.getElementById("increment").addEventListener("click", () => {
+  const v = parseInt(countInput.value);
+  if (v < 30) countInput.value = v + 1;
+});
+document.getElementById("decrement").addEventListener("click", () => {
+  const v = parseInt(countInput.value);
+  if (v > 1) countInput.value = v - 1;
+});
+
+// ─────────────────────────────────────────────
+// DISTRIBUTION ALGORITHM
+// Spreads N exercises as evenly as possible across groups.
+// If a group runs out of exercises, remaining slots go to others.
+// ─────────────────────────────────────────────
+function generateWorkout(muscles, count) {
+  // Build per-muscle pools (shuffled)
+  const pools = {};
+  muscles.forEach(m => {
+    const list = EXERCISES.filter(e => e.muscle === m);
+    pools[m] = shuffle([...list]);
+  });
+
+  const n = muscles.length;
+  // Base count per group + remainder
+  const base = Math.floor(count / n);
+  const remainder = count % n;
+
+  // Assign target counts
+  const targets = {};
+  muscles.forEach((m, i) => {
+    targets[m] = base + (i < remainder ? 1 : 0);
+  });
+
+  const picked = [];
+  const overflow = [];
+
+  // First pass: pick up to target from each group
+  muscles.forEach(m => {
+    const pool = pools[m];
+    const want = targets[m];
+    const take = Math.min(want, pool.length);
+    for (let i = 0; i < take; i++) picked.push(pool[i]);
+    const deficit = want - take;
+    for (let d = 0; d < deficit; d++) overflow.push(m); // track shortfall
+  });
+
+  // Second pass: fill shortfall from groups that have extras
+  if (overflow.length > 0) {
+    // Collect leftover exercises from all groups
+    const extras = [];
+    muscles.forEach(m => {
+      const pool = pools[m];
+      const used = Math.min(targets[m], pool.length);
+      for (let i = used; i < pool.length; i++) extras.push(pool[i]);
+    });
+    shuffle(extras);
+    const fill = Math.min(overflow.length, extras.length);
+    for (let i = 0; i < fill; i++) picked.push(extras[i]);
+  }
+
+  return shuffle(picked);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ─────────────────────────────────────────────
+// RENDER OUTPUT
+// ─────────────────────────────────────────────
+function renderWorkout(exercises, muscles) {
+  const list = document.getElementById("exercise-list");
+  const meta = document.getElementById("output-meta");
+
+  list.innerHTML = "";
+  exercises.forEach((ex, i) => {
+    const card = document.createElement("div");
+    card.className = "exercise-card";
+    card.innerHTML = `
+      <div class="exercise-num">${String(i + 1).padStart(2, "0")}</div>
+      <div class="exercise-info">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-tags">
+          <span class="tag tag-muscle">${ex.muscle}</span>
+          <span class="tag tag-equipment">${ex.equipment}</span>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  meta.textContent = `${exercises.length} exercise${exercises.length !== 1 ? "s" : ""} · ${muscles.join(", ")}`;
+
+  document.getElementById("output").classList.add("visible");
+  document.getElementById("regen-btn").style.display = "";
+
+  // Scroll to output
+  document.getElementById("output").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ─────────────────────────────────────────────
+// SHOW / HIDE NOTICE
+// ─────────────────────────────────────────────
+function showNotice(msg) {
+  const el = document.getElementById("notice");
+  el.textContent = msg;
+  el.classList.add("visible");
+}
+function clearNotice() {
+  document.getElementById("notice").classList.remove("visible");
+}
+
+// ─────────────────────────────────────────────
+// BUTTON HANDLERS
+// ─────────────────────────────────────────────
+function handleGenerate() {
+  clearNotice();
+
+  const muscles = [...selected];
+  const count = parseInt(countInput.value);
+
+  if (muscles.length === 0) {
+    showNotice("Please select at least one muscle group.");
+    return;
+  }
+  if (!count || count < 1) {
+    showNotice("Please enter at least 1 exercise.");
+    return;
+  }
+
+  const totalAvailable = EXERCISES.filter(e => muscles.includes(e.muscle)).length;
+  if (count > totalAvailable) {
+    showNotice(`Only ${totalAvailable} exercises available for the selected muscle groups. Showing all of them.`);
+    // continue — will just show all
+  }
+
+  const workout = generateWorkout(muscles, Math.min(count, totalAvailable));
+  lastWorkout = { muscles, count };
+  renderWorkout(workout, muscles);
+}
+
+function handleRegen() {
+  if (!lastWorkout) return;
+  clearNotice();
+  const { muscles, count } = lastWorkout;
+  const totalAvailable = EXERCISES.filter(e => muscles.includes(e.muscle)).length;
+  const workout = generateWorkout(muscles, Math.min(count, totalAvailable));
+  renderWorkout(workout, muscles);
+}
+
+document.getElementById("generate-btn").addEventListener("click", handleGenerate);
+document.getElementById("regen-btn").addEventListener("click", handleRegen);
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+buildGrid();
+</script>
+</body>
+</html>
